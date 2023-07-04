@@ -20,6 +20,7 @@ class Review(models.Model):
     )
     score = models.IntegerField(
         verbose_name='Оценка',
+        default=0,
         validators=(
             MinValueValidator[1],
             MaxValueValidator[10]
