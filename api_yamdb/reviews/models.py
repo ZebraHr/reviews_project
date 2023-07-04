@@ -22,7 +22,15 @@ class Genre(models.Model):
 class Title(models.Model):
     name = models.CharField(max_length=200, verbose_name='Название')
     year = models.IntegerField(verbose_name='Год выпуска')
-    rating = models.DecimalField(null=True, default=None)
+    description = models.TextField(
+        null=True,
+        blank=True,
+        verbose_name='Описание'
+    )
+    rating = models.DecimalField(max_digits=2,
+                                 decimal_places=1,
+                                 null=True,
+                                 default=None)
     genre = models.ForeignKey(
         Genre,
         blank=True,
