@@ -7,7 +7,7 @@ class Category(models.Model):
                             verbose_name='Адрес типа slug')
 
     def __str__(self):
-        return self.title
+        return self.name
 
 
 class Genre(models.Model):
@@ -16,13 +16,13 @@ class Genre(models.Model):
                             verbose_name='Адрес типа slug')
 
     def __str__(self):
-        return self.title
+        return self.name
 
 
 class Title(models.Model):
     name = models.CharField(max_length=200, verbose_name='Название')
     year = models.IntegerField(verbose_name='Год выпуска')
-    rating = models.IntegerField(null=True, default=None)
+    rating = models.DecimalField(null=True, default=None)
     genre = models.ForeignKey(
         Genre,
         blank=True,
