@@ -1,6 +1,20 @@
 from django.contrib import admin
 
-from .models import Title, Category, Genre
+from .models import Review, Comment, Title, Category, Genre
+
+
+class ReviewAdmin(admin.ModelAdmin):
+    list_display = ('id', 'title', 'text', 'author', 'score', 'pub_date',)
+    empty_value_display = '-пусто-'
+    search_fields = ('text',)
+    list_filter = ('pub_date',)
+
+
+class CommentAdmin(admin.ModelAdmin):
+    list_display = ('id', 'review', 'text', 'author', 'pub_date',)
+    list_filter = ('pub_date',)
+    search_fields = ('text',)
+    empty_value_display = '-пусто-'
 
 
 class TitleAdmin(admin.ModelAdmin):
@@ -14,3 +28,6 @@ class TitleAdmin(admin.ModelAdmin):
 admin.site.register(Title, TitleAdmin)
 admin.site.register(Category)
 admin.site.register(Genre)
+admin.site.register(Review, ReviewAdmin)
+admin.site.register(Comment, CommentAdmin)
+
