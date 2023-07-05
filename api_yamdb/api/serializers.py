@@ -2,6 +2,8 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
 from reviews.models import Comment, Review
+from api_yamdb.api.models import User
+from api_yamdb.settings import STATUS
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -36,3 +38,16 @@ class ReviewSerializer(serializers.ModelSerializer):
                 message='Вами уже был написан отзыв на это произведение'
             )
         ]
+
+ 
+class UserSerializer(serializers.ModelSerializer):
+    """Сериализует данные модели User."""
+    role = serializers.ChoiceField(choices=STATUS, default='user')
+
+    class Meta:
+        fields = (
+            'username',
+            'email',
+            'first_name',
+            'role')
+        model = User
