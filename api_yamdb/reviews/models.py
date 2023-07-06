@@ -1,3 +1,8 @@
+<<<<<<<< HEAD:api_yamdb/reviews/models.py
+========
+from django.db import models
+
+>>>>>>>> origin/feature/users_model_and_jwt:api_yamdb/api/models.py
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
