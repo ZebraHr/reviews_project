@@ -2,8 +2,6 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 # from django.db.models import Avg
 from reviews.models import Comment, Review
-from api_yamdb.api.models import User
-from api_yamdb.settings import STATUS
 
 # Расчет рейтинга
 # rating = serializers.SerializerMethodField()

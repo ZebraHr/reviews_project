@@ -13,7 +13,6 @@ v1_router.register(
     r'title/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)/comments',
     CommentViewSet,
     basename='comments')
-v1_router.register('users', UserViewSet)
 
 
 urlpatterns = [
