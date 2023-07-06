@@ -1,7 +1,7 @@
-from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.db import models
 
-from api_yamdb.settings import STATUS
+from api_yamdb.settings import CHOICES, USER, ADMIN, MODERATOR
 
 
 class User(AbstractUser):
@@ -16,21 +16,25 @@ class User(AbstractUser):
     role = models.CharField(
         'Статус пользователя',
         max_length=25,
-        choices=STATUS,
-        default=STATUS['user']
+        choices=CHOICES,
+        default=USER
+    )
+    bio = models.TextField(
+        'Информация о пользователе',
+        blank=True,
     )
     confirmation_code = models.CharField(max_length=150)
 
     @property
     def is_admin(self):
         return (
-                self.role == STATUS['admin'] or self.is_staff
+                self.role == ADMIN or self.is_staff
                 or self.is_superuser
         )
 
     @property
     def is_moderator(self):
-        return self.role == STATUS['moderator']
+        return self.role == MODERATOR
 
     def __str__(self):
         return self.username

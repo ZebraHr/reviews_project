@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from api_yamdb.api.models import User
+from reviews.models import User
 
 
 class UserAdmin(admin.ModelAdmin):
@@ -10,7 +10,8 @@ class UserAdmin(admin.ModelAdmin):
         'username',
         'first_name',
         'email',
-        'role'
+        'role',
+        'bio',
     )
     list_editable = ('role',)
     search_fields = ('username', 'role')

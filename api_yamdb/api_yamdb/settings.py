@@ -2,7 +2,6 @@ import os
 from datetime import timedelta
 from pathlib import Path
 
-
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
@@ -25,8 +24,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework_simplejwt',
-    'django_filters',
     'api',
+    'reviews',
 ]
 
 MIDDLEWARE = [
@@ -70,6 +69,9 @@ DATABASES = {
     }
 }
 
+
+# User Model
+AUTH_USER_MODEL = 'reviews.User'
 
 # Password validation
 
@@ -131,14 +133,17 @@ SIMPLE_JWT = {
 
 EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
-DEFAULT_FROM_EMAIL = 'yandex.practicum@python.django'
-DEFAULT_EMAIL_SUBJECT = 'user'
+DEFAULT_FROM_EMAIL = 'email@mail.ru'
+DEFAULT_EMAIL_SUBJECT = 'Test-project'
 
+# Const
 
-# Статусы пользователя
+ADMIN = 'admin'
+MODERATOR = 'moderator'
+USER = 'user'
 
-STATUS = {
-    'admin': 'admin',
-    'moderator': 'moderator',
-    'user': 'user'
-}
+CHOICES = (
+    (ADMIN, ADMIN),
+    (MODERATOR, MODERATOR),
+    (USER, USER),
+)
