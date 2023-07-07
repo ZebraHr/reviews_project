@@ -25,7 +25,7 @@
 Клонируйте репозиторий.
 Создайте и активируйте виртуальное окружение:
 ```bash
-git clone https://github.com/Seniacat/API_YaMDB.git
+git clone https://github.com/ZebraHr/api_yamdb.git
 cd api_yamdb/
 source venv/Scripts/activate
 pip install -r requirements.txt
