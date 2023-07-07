@@ -1,53 +1,40 @@
+import datetime as dt
+
 from rest_framework import serializers
-from rest_framework.validators import UniqueTogetherValidator
 
-from reviews.models import Comment, Review
-from api_yamdb.api.models import User
-from api_yamdb.settings import STATUS
+from reviews.models import Title, Genre, Category
 
 
-class CommentSerializer(serializers.ModelSerializer):
-    author = serializers.SlugRelatedField(
-        read_only=True,
-        slug_field='username'
+class CategorySerializer(serializers.ModelSerializer):
+    """Сериализует данные модели Category."""
+    class Meta:
+        model = Category
+        fields = ('name', 'slug')
+
+
+class GenreSerializer(serializers.ModelSerializer):
+    """Сериализует данные модели Genre."""
+    class Meta:
+        model = Genre
+        fields = ('name', 'slug')
+
+
+class TitleSerializer(serializers.ModelSerializer):
+    """Сериализует данные модели Title."""
+    genre = serializers.SlugRelatedField(
+        queryset=Genre.objects.all(), slug_field='slug', many=True
+    )
+    category = serializers.SlugRelatedField(
+        queryset=Category.objects.all(), slug_field='slug'
     )
 
     class Meta:
-        fields = ('id', 'review', 'author', 'text', 'pub_date')
-        model = Comment
-        read_only_fields = ('review',)
-
-
-class ReviewSerializer(serializers.ModelSerializer):
-    title = serializers.SlugRelatedField(
-        slug_field='name',
-        read_only=True
-    )
-    author = serializers.SlugRelatedField(
-        read_only=True,
-        slug_field='username'
-    )
-
-    class Meta:
-        model = Review
         fields = '__all__'
-        validators = [
-            UniqueTogetherValidator(
-                queryset=Review.objects.all(),
-                fields=['author', 'title'],
-                message='Вами уже был написан отзыв на это произведение'
-            )
-        ]
+        model = Title
 
- 
-class UserSerializer(serializers.ModelSerializer):
-    """Сериализует данные модели User."""
-    role = serializers.ChoiceField(choices=STATUS, default='user')
-
-    class Meta:
-        fields = (
-            'username',
-            'email',
-            'first_name',
-            'role')
-        model = User
+    def validate_year(self, value):
+        year = dt.date.today().year
+        if year < value:
+            raise serializers.ValidationError(
+                'Год не может быть больше текущего')
+        return value

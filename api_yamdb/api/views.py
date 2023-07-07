@@ -1,58 +1,48 @@
 from rest_framework import viewsets
-from django.shortcuts import get_object_or_404
-from .serializers import (ReviewSerializer, CommentSerializer)
+from rest_framework import mixins
+from rest_framework import filters
 
-from rest_framework.viewsets import ModelViewSet
-from rest_framework.filters import SearchFilter
+from django_filters.rest_framework import DjangoFilterBackend
 
-from api_yamdb.api.models import User
-from api_yamdb.api.permission import IsAdmin
-from api_yamdb.api.serializers import UserSerializer
+from reviews.models import Title, Genre, Category
+from .permissions import IsAmdinOrReadOnly
 
 
-class CommentViewSet(viewsets.ModelViewSet):
-    serializer_class = CommentSerializer
-    # permission_classes = [, ]
-
-    def get_queryset(self):
-        title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
-        review = title.reviews.get(id=self.kwargs.get('review_id'))
-        return review.comments.all()
-
-    def perform_create(self, serializer):
-        title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
-        review = title.reviews.get(id=self.kwargs.get('review_id'))
-        serializer.save(author=self.request.user, review=review)
+from .serializers import (TitleSerializer,
+                          GenreSerializer,
+                          CategorySerializer)
+from api.filters import TitleFilter
 
 
-class ReviewViewSet(viewsets.ModelViewSet):
-    serializer_class = ReviewSerializer
-    # permission_classes = [ ]
-
-    def get_queryset(self):
-        title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
-        return title.comments.all()
-
-    def perform_create(self, serializer):
-        title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
-        serializer.save(author=self.request.user, title=title)
-
-
-class UserViewSet(ModelViewSet):
-    """Вьюсет для пользователя."""
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-    permission_classes = (IsAdmin,)
-    lookup_field = 'username'
-    filter_backends = (SearchFilter,)
-    search_fields = ('username',)
+class GenreViewSet(mixins.CreateModelMixin,
+                   mixins.ListModelMixin,
+                   mixins.DestroyModelMixin,
+                   viewsets.GenericViewSet):
+    """Вьюсет для создания, просмотра и удаления групп."""
+    serializer_class = GenreSerializer
+    lookup_field = 'slug'
+    queryset = Genre.objects.all()
+    permission_classes = (IsAmdinOrReadOnly, )
+    filter_backends = (filters.SearchFilter, )
+    search_fields = ('name',)
 
 
-def sign_up():
-    """Регистрация."""
-    pass
+class TitleViewSet(viewsets.ModelViewSet):
+    """Вьюсет для создания, просмотра, изменения и удаления произведений."""
+    queryset = Title.objects.all()
+    serializer_class = TitleSerializer
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter, )
+    filterset_class = TitleFilter
+    permission_classes = (IsAmdinOrReadOnly, )
+    search_fields = ('name',)
 
 
-def get_token():
-    """Получение токена."""
-    pass
+class CategoryViewSet(mixins.CreateModelMixin,
+                      mixins.ListModelMixin,
+                      mixins.DestroyModelMixin,
+                      viewsets.GenericViewSet):
+    """Вьюсет для создания, просмотра и удаления категорий."""
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    lookup_field = 'slug'
+    permission_classes = (IsAmdinOrReadOnly, )
