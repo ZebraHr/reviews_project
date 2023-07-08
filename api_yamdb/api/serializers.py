@@ -84,6 +84,18 @@ class ReviewSerializer(serializers.ModelSerializer):
     def validate_score(self, value):
         if 0 >= value >= 10:
             raise serializers.ValidationError('Проверть оценку произведения')
+        
+    class Meta:
+        model = Review
+        fields = ('id', 'author', 'text', 'pub_date', 'title', 'score')
+        read_only_fields = ('title', 'pub_date')
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Review.objects.all(),
+                fields=['author', 'title'],
+                message='Вами уже был написан отзыв на это произведение'
+            )
+        ]
 
 
 class UserSerializer(serializers.ModelSerializer):
