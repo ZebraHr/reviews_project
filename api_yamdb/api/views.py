@@ -4,11 +4,14 @@ from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.filters import SearchFilter
-from rest_framework import viewsets
+from rest_framework import viewsets, filters
 from rest_framework.viewsets import ModelViewSet
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import (AllowAny,
+                                        IsAuthenticated,
+                                        IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
+from django_filters.rest_framework import DjangoFilterBackend
 
 from api.serializers import (ReviewSerializer,
                           CommentSerializer,
@@ -20,11 +23,21 @@ from api.serializers import (ReviewSerializer,
 from api_yamdb.settings import DEFAULT_FROM_EMAIL, DEFAULT_EMAIL_SUBJECT
 from reviews.models import User, Title
 from api.permission import IsAdmin
+from api.paginations import ReviewPagination, CommentPagination
  
 
-  class CommentViewSet(viewsets.ModelViewSet):
+class CommentViewSet(viewsets.ModelViewSet):
+    """Вьюсет для обработки отзывов к произведениям"""
     serializer_class = CommentSerializer
-    # permission_classes = [, ]
+    permission_classes = [IsAuthenticatedOrReadOnly, ]
+    pagination_class = CommentPagination
+    filter_backends = (
+        DjangoFilterBackend,
+        filters.SearchFilter,
+        filters.OrderingFilter)
+    filters_field = ('author', )
+    search_fields = ('author', )
+    ordering_fields = ('pub_date', )
 
     def get_queryset(self):
         title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
@@ -38,12 +51,21 @@ from api.permission import IsAdmin
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
+    """Вьюсет для обработки комментариев к отзывам"""
     serializer_class = ReviewSerializer
-    # permission_classes = [ ]
+    permission_classes = [IsAuthenticatedOrReadOnly, ]
+    pagination_class = ReviewPagination
+    filter_backends = (
+        DjangoFilterBackend,
+        filters.SearchFilter,
+        filters.OrderingFilter)
+    filters_field = ('score',)
+    search_fields = ('score', 'author', 'title')
+    ordering_fields = ('pub_date', 'score')
 
     def get_queryset(self):
         title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
-        return title.comments.all()
+        return title.reviews.all().order_by('id')
 
     def perform_create(self, serializer):
         title = get_object_or_404(Title, id=self.kwargs.get('title_id'))

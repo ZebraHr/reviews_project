@@ -1,4 +1,3 @@
-
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -62,8 +61,8 @@ class Review(models.Model):
         verbose_name='Оценка',
         default=0,
         validators=(
-            MinValueValidator[1],
-            MaxValueValidator[10]
+            MinValueValidator(1),
+            MaxValueValidator(10)
         )
     )
     pub_date = models.DateTimeField(
@@ -73,6 +72,12 @@ class Review(models.Model):
 
     class Meta:
         ordering = ('pub_date',)
+        constraints = [
+            models.UniqueConstraint(
+                fields=['author', 'title'],
+                name='unique_author_title'
+            )
+        ]
 
     def __str__(self):
         return self.text

@@ -43,4 +43,3 @@ class IsAdminOrModeratorOrReadOnly(BasePermission):
                     or request.user.role.is_admin
                     or request.user.role.is_moderator)
         return request.method in SAFE_METHODS
-
