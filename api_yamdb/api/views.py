@@ -1,23 +1,24 @@
 from rest_framework import viewsets
 from rest_framework import mixins
 from rest_framework import filters
-
 from django_filters.rest_framework import DjangoFilterBackend
 
 from reviews.models import Title, Genre, Category
 from .permissions import IsAmdinOrReadOnly
-
-
 from .serializers import (TitleSerializer,
                           GenreSerializer,
                           CategorySerializer)
 from api.filters import TitleFilter
 
 
-class GenreViewSet(mixins.CreateModelMixin,
-                   mixins.ListModelMixin,
-                   mixins.DestroyModelMixin,
-                   viewsets.GenericViewSet):
+class CreateListDestroyMixin(mixins.CreateModelMixin,
+                             mixins.ListModelMixin,
+                             mixins.DestroyModelMixin,
+                             viewsets.GenericViewSet):
+    pass
+
+
+class GenreViewSet(CreateListDestroyMixin):
     """Вьюсет для создания, просмотра и удаления групп."""
     serializer_class = GenreSerializer
     lookup_field = 'slug'
@@ -37,10 +38,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     search_fields = ('name',)
 
 
-class CategoryViewSet(mixins.CreateModelMixin,
-                      mixins.ListModelMixin,
-                      mixins.DestroyModelMixin,
-                      viewsets.GenericViewSet):
+class CategoryViewSet(CreateListDestroyMixin):
     """Вьюсет для создания, просмотра и удаления категорий."""
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
