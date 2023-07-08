@@ -14,17 +14,59 @@ from rest_framework_simplejwt.tokens import AccessToken
 from django_filters.rest_framework import DjangoFilterBackend
 
 from api.serializers import (ReviewSerializer,
-                          CommentSerializer,
-                          UserSerializer,
-                          GetTokenSerializer,
-                          ProfileSerializer,
-                          SignUpSerializer,
-                          ProfileSerializer)
+                             CommentSerializer,
+                             UserSerializer,
+                             GetTokenSerializer,
+                             ProfileSerializer,
+                             SignUpSerializer,
+                             ProfileSerializer,
+                             TitleSerializer,
+                             GenreSerializer,
+                             CategorySerializer)
 from api_yamdb.settings import DEFAULT_FROM_EMAIL, DEFAULT_EMAIL_SUBJECT
-from reviews.models import User, Title
-from api.permission import IsAdmin
+from reviews.models import User, Title, Genre, Category
+from api.permission import IsAdmin, IsAmdinOrReadOnly
 from api.paginations import ReviewPagination, CommentPagination
- 
+from rest_framework import viewsets
+from rest_framework import mixins
+from rest_framework import filters
+from api.filters import TitleFilter
+
+
+class CreateListDestroyMixin(mixins.CreateModelMixin,
+                             mixins.ListModelMixin,
+                             mixins.DestroyModelMixin,
+                             viewsets.GenericViewSet):
+    pass
+
+
+class GenreViewSet(CreateListDestroyMixin):
+    """Вьюсет для создания, просмотра и удаления групп."""
+    serializer_class = GenreSerializer
+    lookup_field = 'slug'
+    queryset = Genre.objects.all()
+    permission_classes = (IsAmdinOrReadOnly, )
+    filter_backends = (filters.SearchFilter, )
+    search_fields = ('name',)
+
+
+class TitleViewSet(viewsets.ModelViewSet):
+    """Вьюсет для создания, просмотра, изменения и удаления произведений."""
+    queryset = Title.objects.all()
+    serializer_class = TitleSerializer
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter, )
+    filterset_class = TitleFilter
+    permission_classes = (IsAmdinOrReadOnly, )
+    search_fields = ('name',)
+
+
+class CategoryViewSet(CreateListDestroyMixin):
+    """Вьюсет для создания, просмотра и удаления категорий."""
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    lookup_field = 'slug'
+    permission_classes = (IsAmdinOrReadOnly, )
+
 
 class CommentViewSet(viewsets.ModelViewSet):
     """Вьюсет для обработки отзывов к произведениям"""
@@ -71,7 +113,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
         title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
         serializer.save(author=self.request.user, title=title)
 
- 
+
 class UserViewSet(ModelViewSet):
     """Вьюсет для модели пользователя."""
     queryset = User.objects.all()

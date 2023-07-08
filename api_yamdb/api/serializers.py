@@ -1,11 +1,50 @@
 import uuid
+import datetime as dt
 from rest_framework import serializers
-from rest_framework.validators import UniqueTogetherValidator
 
 from api.errors import ErrorResponse
 from api_yamdb.settings import CHOICES
 # from django.db.models import Avg
-from reviews.models import User, Comment, Review
+from reviews.models import (Title, Genre,
+                            Category, Title,
+                            Genre, Category,
+                            Review, User,
+                            Comment)
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    """Сериализует данные модели Category."""
+    class Meta:
+        model = Category
+        fields = ('name', 'slug')
+
+
+class GenreSerializer(serializers.ModelSerializer):
+    """Сериализует данные модели Genre."""
+    class Meta:
+        model = Genre
+        fields = ('name', 'slug')
+
+
+class TitleSerializer(serializers.ModelSerializer):
+    """Сериализует данные модели Title."""
+    genre = serializers.SlugRelatedField(
+        queryset=Genre.objects.all(), slug_field='slug', many=True
+    )
+    category = serializers.SlugRelatedField(
+        queryset=Category.objects.all(), slug_field='slug'
+    )
+
+    class Meta:
+        fields = '__all__'
+        model = Title
+
+    def validate_year(self, value):
+        year = dt.date.today().year
+        if year < value:
+            raise serializers.ValidationError(
+                'Год не может быть больше текущего')
+        return value
 
 
 # Расчет рейтинга
@@ -46,7 +85,7 @@ class ReviewSerializer(serializers.ModelSerializer):
         if 0 >= value >= 10:
             raise serializers.ValidationError('Проверть оценку произведения')
 
- 
+
 class UserSerializer(serializers.ModelSerializer):
     """Сериализатор модели юзера."""
     role = serializers.ChoiceField(choices=CHOICES, default='user')
