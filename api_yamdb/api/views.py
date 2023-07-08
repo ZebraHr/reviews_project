@@ -1,31 +1,28 @@
-<<<<<<< HEAD
 import uuid
-=======
-from rest_framework import viewsets
-from django.shortcuts import get_object_or_404
-from .serializers import (ReviewSerializer, CommentSerializer)
-
-from rest_framework.viewsets import ModelViewSet
-from rest_framework.filters import SearchFilter
->>>>>>> 39850f021c94c8758ce6c8fe7e28f20afc367457
-
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.filters import SearchFilter
+from rest_framework import viewsets
+from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import AccessToken
 
+from api.serializers import (ReviewSerializer,
+                          CommentSerializer,
+                          UserSerializer,
+                          GetTokenSerializer,
+                          ProfileSerializer,
+                          SignUpSerializer,
+                          ProfileSerializer)
 from api_yamdb.settings import DEFAULT_FROM_EMAIL, DEFAULT_EMAIL_SUBJECT
-from reviews.models import User
+from reviews.models import User, Title
 from api.permission import IsAdmin
-from api.serializers import UserSerializer, SignUpSerializer, GetTokenSerializer, ProfileSerializer
+ 
 
-
-class CommentViewSet(viewsets.ModelViewSet):
+  class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
     # permission_classes = [, ]
 
@@ -52,7 +49,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
         title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
         serializer.save(author=self.request.user, title=title)
 
-
+ 
 class UserViewSet(ModelViewSet):
     """Вьюсет для модели пользователя."""
     queryset = User.objects.all()

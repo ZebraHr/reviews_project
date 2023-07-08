@@ -1,17 +1,10 @@
 import uuid
-
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
-<<<<<<< HEAD
 from api.errors import ErrorResponse
 from api_yamdb.settings import CHOICES
-from reviews.models import User
-=======
-from reviews.models import Comment, Review
-from api_yamdb.api.models import User
-from api_yamdb.settings import STATUS
->>>>>>> 39850f021c94c8758ce6c8fe7e28f20afc367457
+from reviews.models import User, Comment, Review
 
 
 class CommentSerializer(serializers.ModelSerializer):

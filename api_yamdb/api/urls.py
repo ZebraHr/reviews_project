@@ -1,13 +1,11 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-<<<<<<< HEAD
-from api.views import UserViewSet, get_token, sign_up
-=======
-from api.views import ReviewViewSet, CommentViewSet
-from api_yamdb.api.views import UserViewSet, sign_up, get_token
->>>>>>> 39850f021c94c8758ce6c8fe7e28f20afc367457
-
+from api.views import (UserViewSet,
+                       get_token, 
+                       sign_up,
+                       ReviewViewSet,
+                       CommentViewSet)
 
 v1_router = DefaultRouter()
 v1_router.register(

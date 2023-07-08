@@ -1,11 +1,7 @@
-<<<<<<< HEAD
-<<<<<<<< HEAD:api_yamdb/reviews/models.py
-========
-from django.db import models
 
->>>>>>>> 39850f021c94c8758ce6c8fe7e28f20afc367457:api_yamdb/api/models.py
-from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.contrib.auth.models import AbstractUser
+from django.core.validators import MaxValueValidator, MinValueValidator
 
 from api_yamdb.settings import CHOICES, USER, ADMIN, MODERATOR
 
@@ -44,10 +40,6 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.username
-=======
-from django.db import models
-
-from django.core.validators import MaxValueValidator, MinValueValidator
 
 
 class Review(models.Model):
@@ -112,53 +104,3 @@ class Comment(models.Model):
 
     def __str__(self) -> str:
         return self.text
-
-
-class Category(models.Model):
-    name = models.CharField(max_length=200, verbose_name='Название')
-    slug = models.SlugField(unique=True,
-                            verbose_name='Адрес типа slug')
-
-    def __str__(self):
-        return self.name
-
-
-class Genre(models.Model):
-    name = models.CharField(max_length=200, verbose_name='Название')
-    slug = models.SlugField(unique=True,
-                            verbose_name='Адрес типа slug')
-
-    def __str__(self):
-        return self.name
-
-
-class Title(models.Model):
-    name = models.CharField(max_length=200, verbose_name='Название')
-    year = models.IntegerField(verbose_name='Год выпуска')
-    description = models.TextField(
-        null=True,
-        blank=True,
-        verbose_name='Описание'
-    )
-    rating = models.DecimalField(max_digits=2,
-                                 decimal_places=1,
-                                 null=True,
-                                 default=None)
-    genre = models.ForeignKey(
-        Genre,
-        blank=True,
-        null=True,
-        on_delete=models.SET_NULL,
-        related_name='titles',
-        verbose_name='Жанр',
-
-    )
-    category = models.ForeignKey(
-        Category,
-        blank=True,
-        null=True,
-        on_delete=models.SET_NULL,
-        related_name='titles',
-        verbose_name='Категория',
-    )
->>>>>>> 39850f021c94c8758ce6c8fe7e28f20afc367457
