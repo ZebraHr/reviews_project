@@ -1,21 +1,55 @@
 import uuid
-
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.filters import SearchFilter
+from rest_framework import viewsets
+from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import AccessToken
 
+from api.serializers import (ReviewSerializer,
+                          CommentSerializer,
+                          UserSerializer,
+                          GetTokenSerializer,
+                          ProfileSerializer,
+                          SignUpSerializer,
+                          ProfileSerializer)
 from api_yamdb.settings import DEFAULT_FROM_EMAIL, DEFAULT_EMAIL_SUBJECT
-from reviews.models import User
+from reviews.models import User, Title
 from api.permission import IsAdmin
-from api.serializers import UserSerializer, SignUpSerializer, GetTokenSerializer, ProfileSerializer
+ 
+
+  class CommentViewSet(viewsets.ModelViewSet):
+    serializer_class = CommentSerializer
+    # permission_classes = [, ]
+
+    def get_queryset(self):
+        title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
+        review = title.reviews.get(id=self.kwargs.get('review_id'))
+        return review.comments.all()
+
+    def perform_create(self, serializer):
+        title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
+        review = title.reviews.get(id=self.kwargs.get('review_id'))
+        serializer.save(author=self.request.user, review=review)
 
 
+class ReviewViewSet(viewsets.ModelViewSet):
+    serializer_class = ReviewSerializer
+    # permission_classes = [ ]
+
+    def get_queryset(self):
+        title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
+        return title.comments.all()
+
+    def perform_create(self, serializer):
+        title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
+        serializer.save(author=self.request.user, title=title)
+
+ 
 class UserViewSet(ModelViewSet):
     """Вьюсет для модели пользователя."""
     queryset = User.objects.all()
