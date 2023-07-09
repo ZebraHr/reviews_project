@@ -2,6 +2,8 @@ import uuid
 import datetime as dt
 from rest_framework import serializers
 
+from rest_framework.exceptions import ValidationError
+from rest_framework.generics import get_object_or_404
 from api.errors import ErrorResponse
 from api_yamdb.settings import CHOICES
 # from django.db.models import Avg
@@ -47,6 +49,20 @@ class TitleSerializer(serializers.ModelSerializer):
         return value
 
 
+# class ReadOnlyTitleSerializer(serializers.ModelSerializer):
+#     """Сериализует вывод произведения с расчитанным рейтингом"""
+#     rating = serializers.IntegerField(
+#         source='reviews__score__avg', read_only=True
+#     )
+#     genre = GenreSerializer(many=True)
+#     category = CategorySerializer()
+
+#     class Meta:
+#         model = Title
+#         fields = (
+#             'id', 'name', 'year', 'rating', 'description', 'genre', 'category'
+#         )
+
 # Расчет рейтинга
 # rating = serializers.SerializerMethodField()
 # def get_rating(self, obj):
@@ -63,39 +79,46 @@ class CommentSerializer(serializers.ModelSerializer):
         read_only=True,
         slug_field='username'
     )
+    review = serializers.SlugRelatedField(
+        slug_field='text',
+        read_only=True
+    )
 
     class Meta:
-        fields = ('id', 'review', 'author', 'text', 'pub_date')
+        fields = '__all__'
         model = Comment
-        read_only_fields = ('review', 'pub_date',)
 
 
 class ReviewSerializer(serializers.ModelSerializer):
     """ Отзывы на произведения """
     title = serializers.SlugRelatedField(
         slug_field='name',
-        read_only=True
+        read_only=True,
     )
     author = serializers.SlugRelatedField(
         read_only=True,
-        slug_field='username'
+        slug_field='username',
+        default=serializers.CurrentUserDefault(),
     )
 
-    def validate_score(self, value):
-        if 0 >= value >= 10:
-            raise serializers.ValidationError('Проверть оценку произведения')
-        
+    # def validate_score(self, value):
+    #     if 0 >= value >= 10:
+    #         raise serializers.ValidationError('Проверть оценку произведения')
+
+    def validate(self, data):
+        request = self.context['request']
+        author = request.user
+        title_id = self.context['view'].kwargs.get('title_id')
+        title = get_object_or_404(Title, id=title_id)
+        if request.method == 'POST':
+            if Review.objects.filter(title=title, author=author).exists():
+                raise ValidationError('Вы не можете добавить более'
+                                      'одного отзыва на произведение')
+        return data
+
     class Meta:
         model = Review
-        fields = ('id', 'author', 'text', 'pub_date', 'title', 'score')
-        read_only_fields = ('title', 'pub_date')
-        validators = [
-            UniqueTogetherValidator(
-                queryset=Review.objects.all(),
-                fields=['author', 'title'],
-                message='Вами уже был написан отзыв на это произведение'
-            )
-        ]
+        fields = '__all__'
 
 
 class UserSerializer(serializers.ModelSerializer):

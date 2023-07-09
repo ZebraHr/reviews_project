@@ -1,6 +1,15 @@
 from django.contrib import admin
+from .models import User, Review, Comment, Title, Category, Genre
 
-from reviews.models import User, Review, Comment, Title, Category, Genre
+
+class TitleAdmin(admin.ModelAdmin):
+    """Кастомная админка для модели Title."""
+    list_display = ('id', 'name', 'year', 'rating',
+                    'description', 'category')
+    search_fields = ('name',)
+    list_filter = ('year',)
+    empty_value_display = '-пусто-'
+
 
 class UserAdmin(admin.ModelAdmin):
     """Кастомная админка для модели пользователя."""
@@ -16,9 +25,9 @@ class UserAdmin(admin.ModelAdmin):
     search_fields = ('username', 'role')
     empty_value_display = '-пусто-'
 
-    
+
 class ReviewAdmin(admin.ModelAdmin):
-"""Модель админа для отзывов"""
+    """Модель админа для отзывов"""
     list_display = ('id', 'title', 'text', 'author', 'score', 'pub_date',)
     empty_value_display = '-пусто-'
     search_fields = ('text',)
@@ -31,6 +40,7 @@ class CommentAdmin(admin.ModelAdmin):
     list_filter = ('pub_date',)
     search_fields = ('text',)
     empty_value_display = '-пусто-'
+
 
 admin.site.register(User, UserAdmin)
 admin.site.register(Title, TitleAdmin)
