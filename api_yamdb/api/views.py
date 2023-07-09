@@ -21,7 +21,8 @@ from api.serializers import (ReviewSerializer,
                              ProfileSerializer,
                              TitleSerializer,
                              GenreSerializer,
-                             CategorySerializer)
+                             CategorySerializer,
+                             TitleReadOnlySerializer)
 from api_yamdb.settings import DEFAULT_FROM_EMAIL, DEFAULT_EMAIL_SUBJECT
 from reviews.models import User, Title, Genre, Category, Review
 from api.permission import (IsAdmin,
@@ -60,6 +61,11 @@ class TitleViewSet(viewsets.ModelViewSet):
     filterset_class = TitleFilter
     permission_classes = (IsAmdinOrReadOnly, )
     search_fields = ('name',)
+
+    def get_serializer_class(self):
+        if self.action in ("retrieve", "list"):
+            return TitleReadOnlySerializer
+        return TitleSerializer
 
 
 class CategoryViewSet(CreateListDestroyMixin):

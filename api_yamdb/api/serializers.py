@@ -6,7 +6,6 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
 from api.errors import ErrorResponse
 from api_yamdb.settings import CHOICES
-# from django.db.models import Avg
 from reviews.models import (Title, Genre,
                             Category, Title,
                             Genre, Category,
@@ -49,28 +48,19 @@ class TitleSerializer(serializers.ModelSerializer):
         return value
 
 
-# class ReadOnlyTitleSerializer(serializers.ModelSerializer):
-#     """Сериализует вывод произведения с расчитанным рейтингом"""
-#     rating = serializers.IntegerField(
-#         source='reviews__score__avg', read_only=True
-#     )
-#     genre = GenreSerializer(many=True)
-#     category = CategorySerializer()
+class TitleReadOnlySerializer(serializers.ModelSerializer):
+    """Сериализует вывод произведения с расчитанным рейтингом"""
+    rating = serializers.IntegerField(
+        source='reviews__score__avg', read_only=True
+    )
+    genre = GenreSerializer(many=True)
+    category = CategorySerializer()
 
-#     class Meta:
-#         model = Title
-#         fields = (
-#             'id', 'name', 'year', 'rating', 'description', 'genre', 'category'
-#         )
-
-# Расчет рейтинга
-# rating = serializers.SerializerMethodField()
-# def get_rating(self, obj):
-#         rating = Review.objects.filter(title=obj).aggregate(
-#             Avg('score'))['score__avg']
-#         if rating:
-#             return int(rating)
-#         return None
+    class Meta:
+        model = Title
+        fields = (
+            'id', 'name', 'year', 'rating', 'description', 'genre', 'category'
+        )
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -101,17 +91,14 @@ class ReviewSerializer(serializers.ModelSerializer):
         default=serializers.CurrentUserDefault(),
     )
 
-    # def validate_score(self, value):
-    #     if 0 >= value >= 10:
-    #         raise serializers.ValidationError('Проверть оценку произведения')
-
     def validate(self, data):
         request = self.context['request']
-        author = request.user
-        title_id = self.context['view'].kwargs.get('title_id')
-        title = get_object_or_404(Title, id=title_id)
+        title = get_object_or_404(
+            Title,
+            id=self.context['view'].kwargs.get('title_id'))
         if request.method == 'POST':
-            if Review.objects.filter(title=title, author=author).exists():
+            if Review.objects.filter(title=title,
+                                     author=request.user).exists():
                 raise ValidationError('Вы не можете добавить более'
                                       'одного отзыва на произведение')
         return data
