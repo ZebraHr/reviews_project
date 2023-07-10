@@ -29,7 +29,12 @@ class Title(models.Model):
     """Модель для произведений."""
     name = models.CharField(max_length=200, verbose_name='Название')
     year = models.IntegerField(verbose_name='Год выпуска')
-    rating = models.IntegerField(null=True, default=None)
+    rating = models.PositiveSmallIntegerField(
+        null=True, default=None,
+        validators=(
+            MinValueValidator(1),
+            MaxValueValidator(10)
+        ))
     description = models.TextField(
         null=True,
         blank=True,
