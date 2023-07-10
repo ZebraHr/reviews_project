@@ -2,28 +2,30 @@ import uuid
 
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
-from rest_framework import status
-from rest_framework.decorators import api_view, permission_classes, action
-from rest_framework.filters import SearchFilter
+from rest_framework import status, filters, viewsets
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import AccessToken
 
-from api_yamdb.settings import DEFAULT_FROM_EMAIL, DEFAULT_EMAIL_SUBJECT
+from api.paginations import UserPagination
+from api.permissions import IsAdmin
+from api.serializers import (GetTokenSerializer, ProfileSerializer,
+                             SignUpSerializer, UserSerializer)
+from api_yamdb.settings import DEFAULT_EMAIL_SUBJECT, DEFAULT_FROM_EMAIL
 from reviews.models import User
-from api.permission import IsAdmin
-from api.serializers import UserSerializer, SignUpSerializer, GetTokenSerializer, ProfileSerializer
 
 
-class UserViewSet(ModelViewSet):
-    """Вьюсет для модели пользователя."""
+class UserViewSet(viewsets.ModelViewSet):
+    """Вьюсет для работы с пользователями."""
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = (IsAdmin, )
     lookup_field = 'username'
-    filter_backends = (SearchFilter,)
-    search_fields = ('username', 'email')
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('username',)
+    pagination_class = UserPagination
+    http_method_names = ('get', 'post', 'patch', 'delete',)
 
     @action(
         methods=('get', 'patch'),
@@ -47,7 +49,8 @@ def sign_up(request):
     """Регистрирует пользователя и отправляет код подтверждения."""
     serializer = SignUpSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    confirmation_code = str(uuid.uuid4())
+    email = serializer.validated_data['email']
+    confirmation_code = str(uuid.uuid5(uuid.NAMESPACE_X500, email))
     user, created = User.objects.get_or_create(
         **serializer.validated_data,
         confirmation_code=confirmation_code

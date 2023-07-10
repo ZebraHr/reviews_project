@@ -147,3 +147,5 @@ CHOICES = (
     (MODERATOR, MODERATOR),
     (USER, USER),
 )
+
+ME = 'me'

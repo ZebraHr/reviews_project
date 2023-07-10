@@ -1,22 +1,24 @@
-<<<<<<<< HEAD:api_yamdb/reviews/models.py
-========
-from django.db import models
-
->>>>>>>> origin/feature/users_model_and_jwt:api_yamdb/api/models.py
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-from api_yamdb.settings import CHOICES, USER, ADMIN, MODERATOR
+from api_yamdb.settings import ADMIN, CHOICES, MODERATOR, USER
 
 
 class User(AbstractUser):
     """Кастомная модель пользователя."""
 
-    first_name = models.CharField(max_length=50, blank=True)
+    first_name = models.CharField(max_length=150, blank=True)
+    last_name = models.CharField(max_length=150, blank=True)
+    username = models.CharField(
+        'Имя пользователя',
+        max_length=150,
+        unique=True
+    )
+    password = models.CharField(max_length=100, blank=True, null=True)
     email = models.EmailField(
         'Электронная почта',
-        unique=True,
-        max_length=100
+        max_length=254,
+        unique=True
     )
     role = models.CharField(
         'Статус пользователя',
@@ -32,10 +34,8 @@ class User(AbstractUser):
 
     @property
     def is_admin(self):
-        return (
-                self.role == ADMIN or self.is_staff
-                or self.is_superuser
-        )
+        return (self.role == ADMIN or self.is_staff
+                or self.is_superuser)
 
     @property
     def is_moderator(self):
