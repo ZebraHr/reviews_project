@@ -9,3 +9,7 @@ class ReviewPagination(PageNumberPagination):
 class CommentPagination(PageNumberPagination):
     """Паджинация комментариев к отзывам"""
     page_size = 15
+
+class UserPagination(PageNumberPagination):
+    """Паджинация пользавателей."""
+    page_size = 10

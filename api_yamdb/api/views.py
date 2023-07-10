@@ -3,9 +3,7 @@ from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes, action
-from rest_framework.filters import SearchFilter
-from rest_framework import viewsets, filters
-from rest_framework.viewsets import ModelViewSet
+from rest_framework import viewsets, filters, mixins
 from rest_framework.permissions import (AllowAny,
                                         IsAuthenticated)
 from rest_framework.response import Response
@@ -16,23 +14,20 @@ from api.serializers import (ReviewSerializer,
                              CommentSerializer,
                              UserSerializer,
                              GetTokenSerializer,
-                             ProfileSerializer,
                              SignUpSerializer,
                              ProfileSerializer,
                              TitleSerializer,
                              GenreSerializer,
                              CategorySerializer,
                              TitleReadOnlySerializer)
-from api_yamdb.settings import DEFAULT_FROM_EMAIL, DEFAULT_EMAIL_SUBJECT
 from reviews.models import User, Title, Genre, Category, Review
 from api.permission import (IsAdmin,
                             IsAmdinOrReadOnly,
                             IsAdminModeratorOwnerOrReadOnly)
-from api.paginations import ReviewPagination, CommentPagination
-from rest_framework import viewsets
-from rest_framework import mixins
-from rest_framework import filters
+from api.paginations import ReviewPagination, CommentPagination, UserPagination
 from api.filters import TitleFilter
+
+from api_yamdb.settings import DEFAULT_EMAIL_SUBJECT, DEFAULT_FROM_EMAIL
 
 
 class CreateListDestroyMixin(mixins.CreateModelMixin,
@@ -108,14 +103,16 @@ class ReviewViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user, title=title)
 
 
-class UserViewSet(ModelViewSet):
-    """Вьюсет для модели пользователя."""
+class UserViewSet(viewsets.ModelViewSet):
+    """Вьюсет для работы с пользователями."""
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = (IsAdmin, )
     lookup_field = 'username'
-    filter_backends = (SearchFilter,)
-    search_fields = ('username', 'email')
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('username',)
+    pagination_class = UserPagination
+    http_method_names = ('get', 'post', 'patch', 'delete',)
 
     @action(
         methods=('get', 'patch'),
@@ -139,7 +136,8 @@ def sign_up(request):
     """Регистрирует пользователя и отправляет код подтверждения."""
     serializer = SignUpSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    confirmation_code = str(uuid.uuid4())
+    email = serializer.validated_data['email']
+    confirmation_code = str(uuid.uuid5(uuid.NAMESPACE_X500, email))
     user, created = User.objects.get_or_create(
         **serializer.validated_data,
         confirmation_code=confirmation_code

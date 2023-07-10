@@ -1,13 +1,15 @@
 import uuid
 import datetime as dt
+
 from rest_framework import serializers
 
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
+from rest_framework.validators import UniqueValidator
+
 from api.errors import ErrorResponse
-from api_yamdb.settings import CHOICES
-from reviews.models import (Title, Genre,
-                            Category, Title,
+from api_yamdb.settings import CHOICES, ME
+from reviews.models import (Title,
                             Genre, Category,
                             Review, User,
                             Comment)
@@ -111,6 +113,25 @@ class ReviewSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     """Сериализатор модели юзера."""
     role = serializers.ChoiceField(choices=CHOICES, default='user')
+    username = serializers.RegexField(
+        regex=r'^[\w.@+-]+$',
+        max_length=150,
+        required=True,
+        validators=[
+            UniqueValidator(
+                queryset=User.objects.all(),
+                message=ErrorResponse.USERNAME_EXISTS
+            )]
+    )
+    email = serializers.CharField(
+        max_length=254,
+        required=True,
+        validators=[
+            UniqueValidator(
+                queryset=User.objects.all(),
+                message=ErrorResponse.EMAIL_EXISTS
+            )]
+    )
 
     class Meta:
         fields = (
@@ -124,18 +145,13 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
 
     def create(self, validated_data):
-        """Создает валидного юзера и выдает код подтверждения."""
-        confirmation_code = str(uuid.uuid4())
+        """Админ создает валидного юзера и выдает код подтверждения."""
+        email = validated_data['email']
+        confirmation_code = str(uuid.uuid5(uuid.NAMESPACE_X500, email))
         return User.objects.create(
             **validated_data,
             confirmation_code=confirmation_code
         )
-
-    @staticmethod
-    def validate_username(username):
-        if username.lower() == 'me':
-            raise serializers.ValidationError(ErrorResponse.FORBIDDEN_NAME)
-        return username
 
 
 class ProfileSerializer(UserSerializer):
@@ -143,33 +159,40 @@ class ProfileSerializer(UserSerializer):
 
 
 class SignUpSerializer(serializers.Serializer):
-    email = serializers.EmailField(max_length=100)
-    username = serializers.CharField(max_length=150)
+    email = serializers.EmailField(
+        max_length=254,
+        required=True
+    )
+    username = serializers.RegexField(
+        regex=r'^[\w.@+-]+$',
+        max_length=150,
+        required=True
+    )
 
     def validate(self, data):
         username = data.get('username')
-        UserSerializer.validate_username(username)
         email = data.get('email')
-        if username is None:
-            raise serializers.ValidationError(ErrorResponse.MISSING_USERNAME)
-        if email is None:
-            raise serializers.ValidationError(ErrorResponse.MISSING_EMAIL)
         if (
-            User.objects.filter(username=username).exists()
-            and User.objects.get(username=username).email != email
+                User.objects.filter(username=username).exists()
+                and User.objects.get(username=username).email != email
         ):
             raise serializers.ValidationError(ErrorResponse.USERNAME_EXISTS)
         if (
-            User.objects.filter(email=email).exists()
-            and User.objects.get(email=email).username != username
+                User.objects.filter(email=email).exists()
+                and User.objects.get(email=email).username != username
         ):
             raise serializers.ValidationError(ErrorResponse.EMAIL_EXISTS)
         return data
 
+    def validate_username(self, username):
+        if username.lower() == ME:
+            raise serializers.ValidationError(ErrorResponse.FORBIDDEN_NAME)
+        return username
+
 
 class GetTokenSerializer(serializers.Serializer):
-    username = serializers.CharField(max_length=150)
-    confirmation_code = serializers.CharField(max_length=255)
+    username = serializers.CharField(max_length=150, required=True)
+    confirmation_code = serializers.CharField(required=True)
 
     def validate(self, data):
         username = data.get('username')
