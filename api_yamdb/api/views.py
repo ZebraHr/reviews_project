@@ -28,7 +28,9 @@ from reviews.models import User, Title, Genre, Category, Review
 from api.permission import (IsAdmin,
                             IsAmdinOrReadOnly,
                             IsAdminModeratorOwnerOrReadOnly)
-from api.paginations import ReviewPagination, CommentPagination
+from api.paginations import (ReviewPagination,
+                             CommentPagination,
+                             TitleCategoryGenrePagination)
 from rest_framework import viewsets
 from rest_framework import mixins
 from rest_framework import filters
@@ -47,9 +49,10 @@ class GenreViewSet(CreateListDestroyMixin):
     serializer_class = GenreSerializer
     lookup_field = 'slug'
     queryset = Genre.objects.all()
-    permission_classes = (IsAmdinOrReadOnly, )
-    filter_backends = (filters.SearchFilter, )
+    permission_classes = [IsAmdinOrReadOnly]
+    filter_backends = (SearchFilter,)
     search_fields = ('name',)
+    pagination_class = TitleCategoryGenrePagination
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -59,8 +62,9 @@ class TitleViewSet(viewsets.ModelViewSet):
     serializer_class = TitleSerializer
     filter_backends = (DjangoFilterBackend, filters.SearchFilter, )
     filterset_class = TitleFilter
-    permission_classes = (IsAmdinOrReadOnly, )
+    permission_classes = [IsAmdinOrReadOnly]
     search_fields = ('name',)
+    pagination_class = TitleCategoryGenrePagination
 
     def get_serializer_class(self):
         if self.action in ("retrieve", "list"):
@@ -73,7 +77,10 @@ class CategoryViewSet(CreateListDestroyMixin):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     lookup_field = 'slug'
-    permission_classes = (IsAmdinOrReadOnly, )
+    permission_classes = [IsAmdinOrReadOnly]
+    pagination_class = TitleCategoryGenrePagination
+    filter_backends = (SearchFilter,)
+    search_fields = ('name',)
 
 
 class CommentViewSet(viewsets.ModelViewSet):
