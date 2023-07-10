@@ -1,11 +1,113 @@
 import uuid
+import datetime as dt
 
 from rest_framework import serializers
+
+from rest_framework.exceptions import ValidationError
+from rest_framework.generics import get_object_or_404
 from rest_framework.validators import UniqueValidator
 
 from api.errors import ErrorResponse
 from api_yamdb.settings import CHOICES, ME
-from reviews.models import User
+from reviews.models import (Title,
+                            Genre, Category,
+                            Review, User,
+                            Comment)
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    """Сериализует данные модели Category."""
+    class Meta:
+        model = Category
+        fields = ('name', 'slug')
+
+
+class GenreSerializer(serializers.ModelSerializer):
+    """Сериализует данные модели Genre."""
+    class Meta:
+        model = Genre
+        fields = ('name', 'slug')
+
+
+class TitleSerializer(serializers.ModelSerializer):
+    """Сериализует данные модели Title."""
+    genre = serializers.SlugRelatedField(
+        queryset=Genre.objects.all(), slug_field='slug', many=True
+    )
+    category = serializers.SlugRelatedField(
+        queryset=Category.objects.all(), slug_field='slug'
+    )
+
+    class Meta:
+        fields = '__all__'
+        model = Title
+
+    def validate_year(self, value):
+        year = dt.date.today().year
+        if year < value:
+            raise serializers.ValidationError(
+                'Год не может быть больше текущего')
+        return value
+
+
+class TitleReadOnlySerializer(serializers.ModelSerializer):
+    """Сериализует вывод произведения с расчитанным рейтингом"""
+    rating = serializers.IntegerField(
+        source='reviews__score__avg', read_only=True
+    )
+    genre = GenreSerializer(many=True)
+    category = CategorySerializer()
+
+    class Meta:
+        model = Title
+        fields = (
+            'id', 'name', 'year', 'rating', 'description', 'genre', 'category'
+        )
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    """Комментарии к отзывам на произведения """
+    author = serializers.SlugRelatedField(
+        read_only=True,
+        slug_field='username'
+    )
+    review = serializers.SlugRelatedField(
+        slug_field='text',
+        read_only=True
+    )
+
+    class Meta:
+        fields = '__all__'
+        model = Comment
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    """ Отзывы на произведения """
+    title = serializers.SlugRelatedField(
+        slug_field='name',
+        read_only=True,
+    )
+    author = serializers.SlugRelatedField(
+        read_only=True,
+        slug_field='username',
+        default=serializers.CurrentUserDefault(),
+    )
+
+    def validate(self, data):
+        request = self.context['request']
+        title = get_object_or_404(
+            Title,
+            id=self.context['view'].kwargs.get('title_id'))
+        if request.method == 'POST':
+            if Review.objects.filter(title=title,
+                                     author=request.user).exists():
+                raise ValidationError('Вы не можете добавить более'
+                                      'одного отзыва на произведение')
+        return data
+
+    class Meta:
+        model = Review
+        fields = '__all__'
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -82,8 +184,7 @@ class SignUpSerializer(serializers.Serializer):
             raise serializers.ValidationError(ErrorResponse.EMAIL_EXISTS)
         return data
 
-    @staticmethod
-    def validate_username(username):
+    def validate_username(self, username):
         if username.lower() == ME:
             raise serializers.ValidationError(ErrorResponse.FORBIDDEN_NAME)
         return username

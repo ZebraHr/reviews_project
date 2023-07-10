@@ -1,19 +1,106 @@
 import uuid
-
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
-from rest_framework import status, filters, viewsets
-from rest_framework.decorators import action, api_view, permission_classes
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework import status
+from rest_framework.decorators import api_view, permission_classes, action
+from rest_framework import viewsets, filters, mixins
+from rest_framework.permissions import (AllowAny,
+                                        IsAuthenticated)
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
+from django_filters.rest_framework import DjangoFilterBackend
+from django.db.models import Avg
+from api.serializers import (ReviewSerializer,
+                             CommentSerializer,
+                             UserSerializer,
+                             GetTokenSerializer,
+                             SignUpSerializer,
+                             ProfileSerializer,
+                             TitleSerializer,
+                             GenreSerializer,
+                             CategorySerializer,
+                             TitleReadOnlySerializer)
+from reviews.models import User, Title, Genre, Category, Review
+from api.permission import (IsAdmin,
+                            IsAmdinOrReadOnly,
+                            IsAdminModeratorOwnerOrReadOnly)
+from api.paginations import ReviewPagination, CommentPagination, UserPagination
+from api.filters import TitleFilter
 
-from api.paginations import UserPagination
-from api.permissions import IsAdmin
-from api.serializers import (GetTokenSerializer, ProfileSerializer,
-                             SignUpSerializer, UserSerializer)
 from api_yamdb.settings import DEFAULT_EMAIL_SUBJECT, DEFAULT_FROM_EMAIL
-from reviews.models import User
+
+
+class CreateListDestroyMixin(mixins.CreateModelMixin,
+                             mixins.ListModelMixin,
+                             mixins.DestroyModelMixin,
+                             viewsets.GenericViewSet):
+    pass
+
+
+class GenreViewSet(CreateListDestroyMixin):
+    """Вьюсет для создания, просмотра и удаления групп."""
+    serializer_class = GenreSerializer
+    lookup_field = 'slug'
+    queryset = Genre.objects.all()
+    permission_classes = (IsAmdinOrReadOnly, )
+    filter_backends = (filters.SearchFilter, )
+    search_fields = ('name',)
+
+
+class TitleViewSet(viewsets.ModelViewSet):
+    """Вьюсет для создания, просмотра, изменения и удаления произведений."""
+    queryset = Title.objects.all().annotate(
+        Avg("reviews__score")).order_by("name")
+    serializer_class = TitleSerializer
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter, )
+    filterset_class = TitleFilter
+    permission_classes = (IsAmdinOrReadOnly, )
+    search_fields = ('name',)
+
+    def get_serializer_class(self):
+        if self.action in ("retrieve", "list"):
+            return TitleReadOnlySerializer
+        return TitleSerializer
+
+
+class CategoryViewSet(CreateListDestroyMixin):
+    """Вьюсет для создания, просмотра и удаления категорий."""
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    lookup_field = 'slug'
+    permission_classes = (IsAmdinOrReadOnly, )
+
+
+class CommentViewSet(viewsets.ModelViewSet):
+    """Вьюсет для обработки отзывов к произведениям"""
+    serializer_class = CommentSerializer
+    permission_classes = [IsAdminModeratorOwnerOrReadOnly]
+    pagination_class = CommentPagination
+
+    def get_queryset(self):
+        review = get_object_or_404(Review, id=self.kwargs.get('review_id'))
+        return review.comments.all()
+
+    def perform_create(self, serializer):
+        review = get_object_or_404(Review,
+                                   id=self.kwargs.get('review_id'),
+                                   title=self.kwargs.get('title_id'))
+        serializer.save(author=self.request.user, review=review)
+
+
+class ReviewViewSet(viewsets.ModelViewSet):
+    """Вьюсет для обработки комментариев к отзывам"""
+    serializer_class = ReviewSerializer
+    permission_classes = [IsAdminModeratorOwnerOrReadOnly]
+    pagination_class = ReviewPagination
+
+    def get_queryset(self):
+        title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
+        return title.reviews.all()
+
+    def perform_create(self, serializer):
+        title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
+        serializer.save(author=self.request.user, title=title)
 
 
 class UserViewSet(viewsets.ModelViewSet):
