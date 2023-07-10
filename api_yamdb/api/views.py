@@ -33,8 +33,8 @@ from api.paginations import (ReviewPagination,
                              TitleCategoryGenrePagination)
 from rest_framework import viewsets
 from rest_framework import mixins
-from rest_framework import filters
 from api.filters import TitleFilter
+from rest_framework import filters
 
 
 class CreateListDestroyMixin(mixins.CreateModelMixin,
