@@ -71,11 +71,18 @@ class GenreTitle(models.Model):
 class User(AbstractUser):
     """Кастомная модель пользователя."""
 
-    first_name = models.CharField(max_length=50, blank=True)
+    first_name = models.CharField(max_length=150, blank=True)
+    last_name = models.CharField(max_length=150, blank=True)
+    username = models.CharField(
+        'Имя пользователя',
+        max_length=150,
+        unique=True
+    )
+    password = models.CharField(max_length=100, blank=True, null=True)
     email = models.EmailField(
         'Электронная почта',
-        unique=True,
-        max_length=100
+        max_length=254,
+        unique=True
     )
     role = models.CharField(
         'Статус пользователя',
