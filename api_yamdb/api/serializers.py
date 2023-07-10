@@ -1,16 +1,15 @@
 import uuid
 import datetime as dt
-
-from rest_framework import serializers
-
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
 from rest_framework.validators import UniqueValidator
+from rest_framework import serializers
 
 from api.errors import ErrorResponse
 from api_yamdb.settings import CHOICES, ME
-from reviews.models import (Title,
-                            Genre, Category,
+from api_yamdb.settings import CHOICES
+from reviews.models import (Title, Genre,
+                            Category,
                             Review, User,
                             Comment)
 

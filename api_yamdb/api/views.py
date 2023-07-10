@@ -3,6 +3,7 @@ from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes, action
+from rest_framework.filters import SearchFilter
 from rest_framework import viewsets, filters, mixins
 from rest_framework.permissions import (AllowAny,
                                         IsAuthenticated)
@@ -10,6 +11,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Avg
+
 from api.serializers import (ReviewSerializer,
                              CommentSerializer,
                              UserSerializer,
@@ -21,13 +23,19 @@ from api.serializers import (ReviewSerializer,
                              CategorySerializer,
                              TitleReadOnlySerializer)
 from reviews.models import User, Title, Genre, Category, Review
-from api.permission import (IsAdmin,
-                            IsAmdinOrReadOnly,
-                            IsAdminModeratorOwnerOrReadOnly)
-from api.paginations import ReviewPagination, CommentPagination, UserPagination
+from api.permissions import (IsAdmin,
+                             IsAmdinOrReadOnly,
+                             IsAdminModeratorOwnerOrReadOnly)
 from api.filters import TitleFilter
-
 from api_yamdb.settings import DEFAULT_EMAIL_SUBJECT, DEFAULT_FROM_EMAIL
+from api.paginations import (ReviewPagination,
+                             CommentPagination,
+                             TitleCategoryGenrePagination,
+                             UserPagination)
+from rest_framework import viewsets
+from rest_framework import mixins
+from api.filters import TitleFilter
+from rest_framework import filters
 
 
 class CreateListDestroyMixin(mixins.CreateModelMixin,
@@ -42,9 +50,10 @@ class GenreViewSet(CreateListDestroyMixin):
     serializer_class = GenreSerializer
     lookup_field = 'slug'
     queryset = Genre.objects.all()
-    permission_classes = (IsAmdinOrReadOnly, )
-    filter_backends = (filters.SearchFilter, )
+    permission_classes = [IsAmdinOrReadOnly]
+    filter_backends = (SearchFilter,)
     search_fields = ('name',)
+    pagination_class = TitleCategoryGenrePagination
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -54,8 +63,9 @@ class TitleViewSet(viewsets.ModelViewSet):
     serializer_class = TitleSerializer
     filter_backends = (DjangoFilterBackend, filters.SearchFilter, )
     filterset_class = TitleFilter
-    permission_classes = (IsAmdinOrReadOnly, )
+    permission_classes = [IsAmdinOrReadOnly]
     search_fields = ('name',)
+    pagination_class = TitleCategoryGenrePagination
 
     def get_serializer_class(self):
         if self.action in ("retrieve", "list"):
@@ -68,7 +78,10 @@ class CategoryViewSet(CreateListDestroyMixin):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     lookup_field = 'slug'
-    permission_classes = (IsAmdinOrReadOnly, )
+    permission_classes = [IsAmdinOrReadOnly]
+    pagination_class = TitleCategoryGenrePagination
+    filter_backends = (SearchFilter,)
+    search_fields = ('name',)
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -104,7 +117,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 
 class UserViewSet(viewsets.ModelViewSet):
-    """Вьюсет для работы с пользователями."""
+    """Вьюсет для модели пользователя."""
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = (IsAdmin, )

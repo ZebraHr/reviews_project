@@ -11,6 +11,11 @@ class CommentPagination(PageNumberPagination):
     page_size = 15
 
 
+class TitleCategoryGenrePagination(PageNumberPagination):
+    """Паджинация отзывов на категории."""
+    page_size = 5
+
+
 class UserPagination(PageNumberPagination):
     """Паджинация пользавателей."""
     page_size = 10
