@@ -11,6 +11,9 @@ class Category(models.Model):
     slug = models.SlugField(unique=True,
                             verbose_name='Адрес типа slug')
 
+    class Meta:
+        ordering = ['name']
+
     def __str__(self):
         return self.name
 
@@ -20,6 +23,9 @@ class Genre(models.Model):
     name = models.CharField(max_length=200, verbose_name='Название')
     slug = models.SlugField(unique=True,
                             verbose_name='Адрес типа slug')
+
+    class Meta:
+        ordering = ['name']
 
     def __str__(self):
         return self.name
@@ -54,6 +60,9 @@ class Title(models.Model):
         related_name='titles',
         verbose_name='Категория',
     )
+
+    class Meta:
+        ordering = ['name']
 
 
 class GenreTitle(models.Model):
@@ -105,11 +114,15 @@ class User(AbstractUser):
     def is_moderator(self):
         return self.role == MODERATOR
 
+    class Meta:
+        ordering = ['last_name']
+
     def __str__(self):
         return self.username
 
 
 class Review(models.Model):
+    """Модель для отзывов."""
     title = models.ForeignKey(
         Title,
         on_delete=models.CASCADE,
@@ -152,6 +165,7 @@ class Review(models.Model):
 
 
 class Comment(models.Model):
+    """Модель для комментариев."""
     review = models.ForeignKey(
         Review,
         on_delete=models.CASCADE,
