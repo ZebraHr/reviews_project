@@ -1,8 +1,6 @@
 import os
 from datetime import timedelta
-# from pathlib import Path
 
-# BASE_DIR = Path(__file__).resolve().parent.parent
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -43,7 +41,6 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'api_yamdb.urls'
 
-# TEMPLATES_DIR = BASE_DIR / 'templates'
 TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
 
 TEMPLATES = [

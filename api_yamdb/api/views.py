@@ -1,4 +1,5 @@
 import uuid
+
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from rest_framework import status
@@ -28,10 +29,8 @@ from api.permissions import (IsAdmin,
                              IsAdminModeratorOwnerOrReadOnly)
 from api.filters import TitleFilter
 from api_yamdb.settings import DEFAULT_EMAIL_SUBJECT, DEFAULT_FROM_EMAIL
-from api.paginations import (ReviewPagination,
-                             CommentPagination,
-                             TitleCategoryGenrePagination,
-                             UserPagination)
+from api.paginations import (TitlesPagination,
+                             OtherPagination)
 from rest_framework import viewsets
 from rest_framework import mixins
 from api.filters import TitleFilter
@@ -53,7 +52,7 @@ class GenreViewSet(CreateListDestroyMixin):
     permission_classes = [IsAmdinOrReadOnly]
     filter_backends = (SearchFilter,)
     search_fields = ('name',)
-    pagination_class = TitleCategoryGenrePagination
+    pagination_class = OtherPagination
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -65,7 +64,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     filterset_class = TitleFilter
     permission_classes = [IsAmdinOrReadOnly]
     search_fields = ('name',)
-    pagination_class = TitleCategoryGenrePagination
+    pagination_class = TitlesPagination
 
     def get_serializer_class(self):
         if self.action in ("retrieve", "list"):
@@ -79,16 +78,16 @@ class CategoryViewSet(CreateListDestroyMixin):
     serializer_class = CategorySerializer
     lookup_field = 'slug'
     permission_classes = [IsAmdinOrReadOnly]
-    pagination_class = TitleCategoryGenrePagination
+    pagination_class = OtherPagination
     filter_backends = (SearchFilter,)
     search_fields = ('name',)
 
 
 class CommentViewSet(viewsets.ModelViewSet):
-    """Вьюсет для обработки отзывов к произведениям"""
+    """Вьюсет для обработки отзывов к произведениям."""
     serializer_class = CommentSerializer
     permission_classes = [IsAdminModeratorOwnerOrReadOnly]
-    pagination_class = CommentPagination
+    pagination_class = OtherPagination
 
     def get_queryset(self):
         review = get_object_or_404(Review, id=self.kwargs.get('review_id'))
@@ -102,10 +101,10 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
-    """Вьюсет для обработки комментариев к отзывам"""
+    """Вьюсет для обработки комментариев к отзывам."""
     serializer_class = ReviewSerializer
     permission_classes = [IsAdminModeratorOwnerOrReadOnly]
-    pagination_class = ReviewPagination
+    pagination_class = OtherPagination
 
     def get_queryset(self):
         title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
@@ -124,7 +123,7 @@ class UserViewSet(viewsets.ModelViewSet):
     lookup_field = 'username'
     filter_backends = (filters.SearchFilter,)
     search_fields = ('username',)
-    pagination_class = UserPagination
+    pagination_class = OtherPagination
     http_method_names = ('get', 'post', 'patch', 'delete',)
 
     @action(

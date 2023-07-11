@@ -1,5 +1,6 @@
 import uuid
 import datetime as dt
+
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
 from rest_framework.validators import UniqueValidator
@@ -45,12 +46,13 @@ class TitleSerializer(serializers.ModelSerializer):
         year = dt.date.today().year
         if year < value:
             raise serializers.ValidationError(
-                'Год не может быть больше текущего')
+                ErrorResponse.YEAR_TILL_NOW
+            )
         return value
 
 
 class TitleReadOnlySerializer(serializers.ModelSerializer):
-    """Сериализует вывод произведения с расчитанным рейтингом"""
+    """Сериализует вывод произведения с расчитанным рейтингом."""
     rating = serializers.IntegerField(
         source='reviews__score__avg', read_only=True
     )
@@ -65,7 +67,7 @@ class TitleReadOnlySerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    """Комментарии к отзывам на произведения """
+    """Комментарии к отзывам на произведения."""
     author = serializers.SlugRelatedField(
         read_only=True,
         slug_field='username'
@@ -81,7 +83,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
-    """ Отзывы на произведения """
+    """Отзывы на произведения."""
     title = serializers.SlugRelatedField(
         slug_field='name',
         read_only=True,
@@ -100,8 +102,9 @@ class ReviewSerializer(serializers.ModelSerializer):
         if request.method == 'POST':
             if Review.objects.filter(title=title,
                                      author=request.user).exists():
-                raise ValidationError('Вы не можете добавить более'
-                                      'одного отзыва на произведение')
+                raise ValidationError(
+                    ErrorResponse.ONE_REVIEW_ONLY
+                )
         return data
 
     class Meta:
@@ -154,10 +157,12 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class ProfileSerializer(UserSerializer):
+    """Сериализатор профиля."""
     role = serializers.CharField(read_only=True)
 
 
 class SignUpSerializer(serializers.Serializer):
+    """Сериализатор регистрации."""
     email = serializers.EmailField(
         max_length=254,
         required=True
@@ -190,6 +195,7 @@ class SignUpSerializer(serializers.Serializer):
 
 
 class GetTokenSerializer(serializers.Serializer):
+    """"Сериализатор получения токена."""
     username = serializers.CharField(max_length=150, required=True)
     confirmation_code = serializers.CharField(required=True)
 

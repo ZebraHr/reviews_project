@@ -1,11 +1,9 @@
 import os
+
 import sqlite3
-
-
 import pandas as pd
 from django.conf import settings
 from django.core.management.base import BaseCommand
-
 
 SERIES_NAME = {
     'category': 'category_id',
