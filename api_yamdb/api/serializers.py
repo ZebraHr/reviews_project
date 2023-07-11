@@ -46,7 +46,7 @@ class TitleSerializer(serializers.ModelSerializer):
         year = dt.date.today().year
         if year < value:
             raise serializers.ValidationError(
-                ErrorResponse.YEAR_TILL_NOW
+                ErrorResponse.INCORRECT_DAY
             )
         return value
 
