@@ -145,6 +145,7 @@ MODERATOR = 'moderator'
 USER = 'user'
 MIN_SCORE = 1
 MAX_SCORE = 10
+CLIPPING = 15
 
 CHOICES = (
     (ADMIN, ADMIN),
