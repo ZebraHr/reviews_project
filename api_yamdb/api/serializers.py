@@ -2,6 +2,7 @@ import uuid
 import datetime as dt
 
 from rest_framework.exceptions import ValidationError
+from rest_framework.generics import get_object_or_404
 from rest_framework.validators import UniqueValidator
 from rest_framework import serializers
 
@@ -95,11 +96,11 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         request = self.context['request']
+        title = get_object_or_404(
+            Title,
+            id=self.context['view'].kwargs.get('title_id'))
         if request.method == 'POST':
-            if Title.objects.filter(
-                reviews__author=request.user,
-                id=self.context['view'].kwargs.get('title_id')
-            ).exists():
+            if title.reviews.filter(author=request.user):
                 raise ValidationError(
                     ErrorResponse.ONE_REVIEW_ONLY
                 )
