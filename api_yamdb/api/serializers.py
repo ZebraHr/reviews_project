@@ -8,7 +8,6 @@ from rest_framework import serializers
 
 from api.errors import ErrorResponse
 from api_yamdb.settings import CHOICES, ME
-from api_yamdb.settings import CHOICES
 from reviews.models import (Title, Genre,
                             Category,
                             Review, User,

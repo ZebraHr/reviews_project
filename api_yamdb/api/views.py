@@ -58,7 +58,7 @@ class GenreViewSet(CreateListDestroyMixin):
 class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет для создания, просмотра, изменения и удаления произведений."""
     queryset = Title.objects.all().annotate(
-        Avg("reviews__score")).order_by("name")
+        Avg('reviews__score')).order_by('name')
     serializer_class = TitleSerializer
     filter_backends = (DjangoFilterBackend, filters.SearchFilter, )
     filterset_class = TitleFilter
@@ -67,7 +67,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     pagination_class = TitlesPagination
 
     def get_serializer_class(self):
-        if self.action in ("retrieve", "list"):
+        if self.action in ('retrieve', 'list'):
             return TitleReadOnlySerializer
         return TitleSerializer
 
@@ -150,7 +150,7 @@ def sign_up(request):
     serializer.is_valid(raise_exception=True)
     email = serializer.validated_data['email']
     confirmation_code = str(uuid.uuid5(uuid.NAMESPACE_X500, email))
-    user, created = User.objects.get_or_create(
+    user, _ = User.objects.get_or_create(
         **serializer.validated_data,
         confirmation_code=confirmation_code
     )
