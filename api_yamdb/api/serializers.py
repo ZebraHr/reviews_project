@@ -95,11 +95,9 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         request = self.context['request']
+        id = self.context['view'].kwargs.get('title_id')
         if request.method == 'POST':
-            if Title.objects.filter(
-                reviews__author=request.user,
-                id=self.context['view'].kwargs.get('title_id')
-            ).exists():
+            if request.user.reviews.filter(title__id=id):
                 raise ValidationError(
                     ErrorResponse.ONE_REVIEW_ONLY
                 )

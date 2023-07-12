@@ -58,7 +58,7 @@ class GenreViewSet(CreateListDestroyMixin):
 class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет для создания, просмотра, изменения и удаления произведений."""
     queryset = Title.objects.all().annotate(
-        Avg("reviews__score")).order_by("name")
+        Avg('reviews__score')).order_by('name')
     serializer_class = TitleSerializer
     filter_backends = (DjangoFilterBackend, filters.SearchFilter, )
     filterset_class = TitleFilter

@@ -2,7 +2,8 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 
-from api_yamdb.settings import CHOICES, USER, ADMIN, MODERATOR, MIN_SCORE, MAX_SCORE
+from api_yamdb.settings import (CHOICES, USER, ADMIN, MODERATOR,
+                                MIN_SCORE, MAX_SCORE, CLIPPING)
 
 
 class Category(models.Model):
@@ -161,7 +162,7 @@ class Review(models.Model):
         ]
 
     def __str__(self):
-        return self.text[:15]
+        return self.text[:CLIPPING]
 
 
 class Comment(models.Model):
@@ -190,4 +191,4 @@ class Comment(models.Model):
         ordering = ['pub_date']
 
     def __str__(self) -> str:
-        return self.text[:15]
+        return self.text[:CLIPPING]
