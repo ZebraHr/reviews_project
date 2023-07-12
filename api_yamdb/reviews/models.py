@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 
-from api_yamdb.settings import CHOICES, USER, ADMIN, MODERATOR
+from api_yamdb.settings import CHOICES, USER, ADMIN, MODERATOR, MIN_SCORE, MAX_SCORE
 
 
 class Category(models.Model):
@@ -38,8 +38,8 @@ class Title(models.Model):
     rating = models.PositiveSmallIntegerField(
         null=True, default=None,
         validators=(
-            MinValueValidator(1),
-            MaxValueValidator(10)
+            MinValueValidator(MIN_SCORE),
+            MaxValueValidator(MAX_SCORE)
         ))
     description = models.TextField(
         null=True,
@@ -161,7 +161,7 @@ class Review(models.Model):
         ]
 
     def __str__(self):
-        return self.text
+        return self.text[:15]
 
 
 class Comment(models.Model):
@@ -190,4 +190,4 @@ class Comment(models.Model):
         ordering = ['pub_date']
 
     def __str__(self) -> str:
-        return self.text
+        return self.text[:15]
