@@ -7,7 +7,6 @@ from rest_framework import serializers
 
 from api.errors import ErrorResponse
 from api_yamdb.settings import CHOICES, ME
-from api_yamdb.settings import CHOICES
 from reviews.models import (Title, Genre,
                             Category,
                             Review, User,
@@ -110,7 +109,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     """Сериализатор модели юзера."""
-    role = serializers.ChoiceField(choices=CHOICES, default='user')
+    role = serializers.ChoiceField(choices=settings.CHOICES, default='user')
     username = serializers.RegexField(
         regex=r'^[\w.@+-]+$',
         max_length=150,
@@ -142,23 +141,12 @@ class UserSerializer(serializers.ModelSerializer):
         )
         model = User
 
-    def create(self, validated_data):
-        """Админ создает валидного юзера и выдает код подтверждения."""
-        email = validated_data['email']
-        confirmation_code = str(uuid.uuid5(uuid.NAMESPACE_X500, email))
-        return User.objects.create(
-            **validated_data,
-            confirmation_code=confirmation_code
-        )
-
 
 class ProfileSerializer(UserSerializer):
-    """Сериализатор профиля."""
     role = serializers.CharField(read_only=True)
 
 
 class SignUpSerializer(serializers.Serializer):
-    """Сериализатор регистрации."""
     email = serializers.EmailField(
         max_length=254,
         required=True
@@ -172,26 +160,22 @@ class SignUpSerializer(serializers.Serializer):
     def validate(self, data):
         username = data.get('username')
         email = data.get('email')
-        if (
-                User.objects.filter(username=username).exists()
-                and User.objects.get(username=username).email != email
-        ):
+        user_same_username = User.objects.filter(username=username).first()
+        user_same_email = User.objects.filter(email=email).first()
+        if user_same_username and user_same_username.email != email:
             raise serializers.ValidationError(ErrorResponse.USERNAME_EXISTS)
-        if (
-                User.objects.filter(email=email).exists()
-                and User.objects.get(email=email).username != username
-        ):
+        if user_same_email and user_same_email.username != username:
             raise serializers.ValidationError(ErrorResponse.EMAIL_EXISTS)
         return data
 
-    def validate_username(self, username):
-        if username.lower() == ME:
+    @staticmethod
+    def validate_username(username):
+        if username.lower() == settings.ME:
             raise serializers.ValidationError(ErrorResponse.FORBIDDEN_NAME)
         return username
 
 
 class GetTokenSerializer(serializers.Serializer):
-    """"Сериализатор получения токена."""
     username = serializers.CharField(max_length=150, required=True)
     confirmation_code = serializers.CharField(required=True)
 
