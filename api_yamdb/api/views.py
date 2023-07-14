@@ -1,11 +1,9 @@
-import uuid
-
+from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.filters import SearchFilter
-from rest_framework import viewsets, filters, mixins
 from rest_framework.permissions import (AllowAny,
                                         IsAuthenticated)
 from rest_framework.response import Response
@@ -27,8 +25,7 @@ from reviews.models import User, Title, Genre, Category, Review
 from api.permissions import (IsAdmin,
                              IsAmdinOrReadOnly,
                              IsAdminModeratorOwnerOrReadOnly)
-from api.filters import TitleFilter
-from api_yamdb.settings import DEFAULT_EMAIL_SUBJECT, DEFAULT_FROM_EMAIL
+from django.conf import settings
 from api.paginations import (TitlesPagination,
                              OtherPagination)
 from rest_framework import viewsets
@@ -116,7 +113,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 
 class UserViewSet(viewsets.ModelViewSet):
-    """Вьюсет для модели пользователя."""
+    """Вьюсет для работы с пользователями."""
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = (IsAdmin, )
@@ -148,16 +145,12 @@ def sign_up(request):
     """Регистрирует пользователя и отправляет код подтверждения."""
     serializer = SignUpSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    email = serializer.validated_data['email']
-    confirmation_code = str(uuid.uuid5(uuid.NAMESPACE_X500, email))
-    user, _ = User.objects.get_or_create(
-        **serializer.validated_data,
-        confirmation_code=confirmation_code
-    )
+    user, _ = User.objects.get_or_create(**serializer.validated_data)
+    user.confirmation_code = default_token_generator.make_token(user=user)
     send_mail(
-        subject=DEFAULT_EMAIL_SUBJECT,
+        subject=settings.DEFAULT_EMAIL_SUBJECT,
         message=user.confirmation_code,
-        from_email=DEFAULT_FROM_EMAIL,
+        from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=(user.email,)
     )
     return Response(serializer.data, status=status.HTTP_200_OK)
