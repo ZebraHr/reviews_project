@@ -1,8 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from django.core.validators import MaxValueValidator, MinValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator,
+MIN_SCORE, MAX_SCORE, CLIPPING)
 
-from api_yamdb.settings import CHOICES, USER, ADMIN, MODERATOR
 
 
 class Category(models.Model):
@@ -34,12 +34,13 @@ class Genre(models.Model):
 class Title(models.Model):
     """Модель для произведений."""
     name = models.CharField(max_length=200, verbose_name='Название')
-    year = models.IntegerField(verbose_name='Год выпуска')
+    year = models.PositiveSmallIntegerField(verbose_name='Год выпуска',
+                                            db_index=True)
     rating = models.PositiveSmallIntegerField(
         null=True, default=None,
         validators=(
-            MinValueValidator(1),
-            MaxValueValidator(10)
+            MinValueValidator(MIN_SCORE),
+            MaxValueValidator(MAX_SCORE)
         ))
     description = models.TextField(
         null=True,
@@ -64,6 +65,9 @@ class Title(models.Model):
     class Meta:
         ordering = ['name']
 
+    def __str__(self):
+        return self.name
+
 
 class GenreTitle(models.Model):
     """
@@ -72,6 +76,9 @@ class GenreTitle(models.Model):
     """
     genre = models.ForeignKey(Genre, on_delete=models.SET_NULL, null=True)
     title = models.ForeignKey(Title, on_delete=models.CASCADE)
+
+    class Meta:
+        ordering = ['genre']
 
     def __str__(self):
         return f'{self.title} {self.genre}'
@@ -141,8 +148,8 @@ class Review(models.Model):
     score = models.PositiveSmallIntegerField(
         verbose_name='Оценка',
         validators=(
-            MinValueValidator(1),
-            MaxValueValidator(10)
+            MinValueValidator(MIN_SCORE),
+            MaxValueValidator(MAX_SCORE)
         )
     )
     pub_date = models.DateTimeField(
@@ -161,7 +168,7 @@ class Review(models.Model):
         ]
 
     def __str__(self):
-        return self.text
+        return self.text[:CLIPPING]
 
 
 class Comment(models.Model):
@@ -190,4 +197,4 @@ class Comment(models.Model):
         ordering = ['pub_date']
 
     def __str__(self) -> str:
-        return self.text
+        return self.text[:CLIPPING]
