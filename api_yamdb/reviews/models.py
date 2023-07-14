@@ -1,9 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from django.core.validators import MaxValueValidator, MinValueValidator,
-MIN_SCORE, MAX_SCORE, CLIPPING)
+from django.core.validators import MaxValueValidator, MinValueValidator
 
-
+from api_yamdb.settings import (CHOICES, USER, ADMIN, MODERATOR,
+                                MIN_SCORE, MAX_SCORE, CLIPPING)
 
 class Category(models.Model):
     """Модель для категорий."""
