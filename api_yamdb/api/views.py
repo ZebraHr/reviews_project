@@ -67,7 +67,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     pagination_class = TitlesPagination
 
     def get_serializer_class(self):
-        if self.action in ("retrieve", "list"):
+        if self.action in ('retrieve', 'list'):
             return TitleReadOnlySerializer
         return TitleSerializer
 
@@ -117,14 +117,14 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 
 class UserViewSet(viewsets.ModelViewSet):
-    """Вьюсет для модели пользователя."""
+    """Вьюсет для работы с пользователями."""
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = (IsAdmin, )
     lookup_field = 'username'
     filter_backends = (filters.SearchFilter,)
     search_fields = ('username',)
-    pagination_class = OtherPagination
+    pagination_class = UserPagination
     http_method_names = ('get', 'post', 'patch', 'delete',)
 
     @action(
@@ -149,16 +149,12 @@ def sign_up(request):
     """Регистрирует пользователя и отправляет код подтверждения."""
     serializer = SignUpSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    email = serializer.validated_data['email']
-    confirmation_code = str(uuid.uuid5(uuid.NAMESPACE_X500, email))
-    user, created = User.objects.get_or_create(
-        **serializer.validated_data,
-        confirmation_code=confirmation_code
-    )
+    user, _ = User.objects.get_or_create(**serializer.validated_data)
+    user.confirmation_code = default_token_generator.make_token(user=user)
     send_mail(
-        subject=DEFAULT_EMAIL_SUBJECT,
+        subject=settings.DEFAULT_EMAIL_SUBJECT,
         message=user.confirmation_code,
-        from_email=DEFAULT_FROM_EMAIL,
+        from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=(user.email,)
     )
     return Response(serializer.data, status=status.HTTP_200_OK)

@@ -5,7 +5,6 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from api_yamdb.settings import (CHOICES, USER, ADMIN, MODERATOR,
                                 MIN_SCORE, MAX_SCORE, CLIPPING)
 
-
 class Category(models.Model):
     """Модель для категорий."""
     name = models.CharField(max_length=200, verbose_name='Название')
@@ -35,7 +34,8 @@ class Genre(models.Model):
 class Title(models.Model):
     """Модель для произведений."""
     name = models.CharField(max_length=200, verbose_name='Название')
-    year = models.IntegerField(verbose_name='Год выпуска')
+    year = models.PositiveSmallIntegerField(verbose_name='Год выпуска',
+                                            db_index=True)
     rating = models.PositiveSmallIntegerField(
         null=True, default=None,
         validators=(
@@ -65,6 +65,9 @@ class Title(models.Model):
     class Meta:
         ordering = ['name']
 
+    def __str__(self):
+        return self.name
+
 
 class GenreTitle(models.Model):
     """
@@ -73,6 +76,9 @@ class GenreTitle(models.Model):
     """
     genre = models.ForeignKey(Genre, on_delete=models.SET_NULL, null=True)
     title = models.ForeignKey(Title, on_delete=models.CASCADE)
+
+    class Meta:
+        ordering = ['genre']
 
     def __str__(self):
         return f'{self.title} {self.genre}'
@@ -142,8 +148,8 @@ class Review(models.Model):
     score = models.PositiveSmallIntegerField(
         verbose_name='Оценка',
         validators=(
-            MinValueValidator(1),
-            MaxValueValidator(10)
+            MinValueValidator(MIN_SCORE),
+            MaxValueValidator(MAX_SCORE)
         )
     )
     pub_date = models.DateTimeField(
