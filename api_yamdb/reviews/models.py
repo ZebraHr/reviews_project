@@ -1,9 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.conf import settings
 
-from api_yamdb.settings import (CHOICES, USER, ADMIN, MODERATOR,
-                                MIN_SCORE, MAX_SCORE, CLIPPING)
 
 class Category(models.Model):
     """Модель для категорий."""
@@ -39,8 +38,8 @@ class Title(models.Model):
     rating = models.PositiveSmallIntegerField(
         null=True, default=None,
         validators=(
-            MinValueValidator(MIN_SCORE),
-            MaxValueValidator(MAX_SCORE)
+            MinValueValidator(settings.MIN_SCORE),
+            MaxValueValidator(settings.MAX_SCORE)
         ))
     description = models.TextField(
         null=True,
@@ -103,8 +102,8 @@ class User(AbstractUser):
     role = models.CharField(
         'Статус пользователя',
         max_length=25,
-        choices=CHOICES,
-        default=USER
+        choices=settings.CHOICES,
+        default=settings.USER
     )
     bio = models.TextField(
         'Информация о пользователе',
@@ -114,12 +113,12 @@ class User(AbstractUser):
 
     @property
     def is_admin(self):
-        return (self.role == ADMIN or self.is_staff
+        return (self.role == settings.ADMIN or self.is_staff
                 or self.is_superuser)
 
     @property
     def is_moderator(self):
-        return self.role == MODERATOR
+        return self.role == settings.MODERATOR
 
     class Meta:
         ordering = ['last_name']
@@ -148,8 +147,8 @@ class Review(models.Model):
     score = models.PositiveSmallIntegerField(
         verbose_name='Оценка',
         validators=(
-            MinValueValidator(MIN_SCORE),
-            MaxValueValidator(MAX_SCORE)
+            MinValueValidator(settings.MIN_SCORE),
+            MaxValueValidator(settings.MAX_SCORE)
         )
     )
     pub_date = models.DateTimeField(
@@ -168,7 +167,7 @@ class Review(models.Model):
         ]
 
     def __str__(self):
-        return self.text[:CLIPPING]
+        return self.text[:settings.CLIPPING]
 
 
 class Comment(models.Model):
@@ -197,4 +196,4 @@ class Comment(models.Model):
         ordering = ['pub_date']
 
     def __str__(self) -> str:
-        return self.text[:CLIPPING]
+        return self.text[:settings.CLIPPING]
