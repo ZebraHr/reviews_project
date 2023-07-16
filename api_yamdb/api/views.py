@@ -1,17 +1,16 @@
-import uuid
-
+from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.filters import SearchFilter
-from rest_framework import viewsets, filters, mixins
 from rest_framework.permissions import (AllowAny,
                                         IsAuthenticated)
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Avg
+from django.conf import settings
 
 from api.serializers import (ReviewSerializer,
                              CommentSerializer,
@@ -27,8 +26,6 @@ from reviews.models import User, Title, Genre, Category, Review
 from api.permissions import (IsAdmin,
                              IsAmdinOrReadOnly,
                              IsAdminModeratorOwnerOrReadOnly)
-from api.filters import TitleFilter
-from api_yamdb.settings import DEFAULT_EMAIL_SUBJECT, DEFAULT_FROM_EMAIL
 from api.paginations import (TitlesPagination,
                              OtherPagination)
 from rest_framework import viewsets
@@ -124,7 +121,7 @@ class UserViewSet(viewsets.ModelViewSet):
     lookup_field = 'username'
     filter_backends = (filters.SearchFilter,)
     search_fields = ('username',)
-    pagination_class = UserPagination
+    pagination_class = OtherPagination
     http_method_names = ('get', 'post', 'patch', 'delete',)
 
     @action(
