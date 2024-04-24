@@ -129,13 +129,6 @@ http://127.0.0.1:8000/api/v1/titles/{title_id}/reviews/{review_id}/comments/
 /redoc/
 ```
 ### Автор
-Ольга Викторова,
-Тимур Булатов,
-Анна Победоносцева
-
-Студенты Яндекс Практикума ["Python-разаботчик плюс"](https://practicum.yandex.ru/python-developer-plus/?from=catalog)
-
-GitHub:
-(https://github.com/vikolga)
-(https://github.com/T1mBul)
-(https://github.com/ZebraHr)
+[Ольга Викторова](https://github.com/vikolga)
+[Тимур Булатов](https://github.com/T1mBul)
+[Анна Победоносцева](https://github.com/ZebraHr) тимлид
