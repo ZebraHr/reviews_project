@@ -130,5 +130,7 @@ http://127.0.0.1:8000/api/v1/titles/{title_id}/reviews/{review_id}/comments/
 ```
 ### Автор
 [Ольга Викторова](https://github.com/vikolga)
+
 [Тимур Булатов](https://github.com/T1mBul)
+
 [Анна Победоносцева](https://github.com/ZebraHr) тимлид
