@@ -4,7 +4,7 @@
 
 ## Технологии:
 
-[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11-blue?logo=python)](https://www.python.org/)
+[![Python](https://img.shields.io/badge/python-3.10-blue?logo=python)](https://www.python.org/)
 [![DjangoRestFramework](https://img.shields.io/badge/DjangoRestFramework%20%7C%203.11-black?logo=django)](https://www.django-rest-framework.org/)
 [![SQLite](https://img.shields.io/badge/SQLite%20%7C%203.11-blue?logo=sqlite)](https://www.sqlite.org/index.html)
 
